@@ -9,19 +9,22 @@ This package contains softwares for Tec Gihan Co.,Ltd. sensor amplifiers running
 
 ## Sensors and Amplifiers - 対応センサ・アンプ
 
-- Tec Gihan Co.,Ltd. - テック技販
+- [Tec Gihan Co.,Ltd. - テック技販](https://tecgihan.co.jp/)
   - Amplifiers for Robot - ロボット用アンプ
     - DMA-03 for Robot
-  - Force Sensors - 力センサ
-    - USL06-H5-500N-C
-    - USL08-H6-2KN-C
-    - ... TBD ...
+  - [Force Sensors - 力センサ](https://tecgihan.co.jp/product/forcesensor/sensor/)
+    - [USL06-H5 Series](https://tecgihan.co.jp/product/forcesensor/sensor/usl06.html)
+    - [USL08-H6 Series](https://tecgihan.co.jp/product/forcesensor/sensor/usl08.html)<br>![Force Sensor](doc/images/tecgihan_force-sensor_small.JPG)
 
+![Sensor-Amplifire-RViz](doc/images/dma03_sensor_rviz.JPG)
 
 ## System Requirement - システム要件
 
-- Ubuntu 24.04 + ROS Jazzy
+`tecgihan_driver` supports the following system combinations.  
+`tecgihan_driver` は下記のシステムの組み合わせに対応しています．
+
 - Ubuntu 22.04 + ROS Humble
+- Ubuntu 24.04 + ROS Jazzy
 
 
 ## Software Configurations of DMA-03 for Robot Amplifier Driver<br> - ロボット用 DMA-03 アンプドライバソフトウェア構成
@@ -70,17 +73,6 @@ This package contains softwares for Tec Gihan Co.,Ltd. sensor amplifiers running
 
 ## Installation - インストール
 
----
----
-
-- **Note**: As of June 2025, the environment for installation with `apt` is currently being prepared.
-  - Please [build the source code](#source-code-build-optional---ソースコードのビルド応用) and use it until the environmet is ready.
-- **注**: 2025年6月時点では `apt` でインストールする環境は準備中です．
-  - 準備が整うまで [ソースコードビルド](#source-code-build-optional---ソースコードのビルド応用) して利用してください．
-
----
----
-
 Before this installation, make sure that the appropriate version of ROS is already installed on your Ubuntu PC.  
 
 インストールの前提として既に Ubuntu PC に適切なバージョンの ROS がインストールされていることを確認してください．
@@ -102,6 +94,12 @@ sudo apt update
 sudo apt full-upgrade
 sudo apt install ros-$ROS_DISTRO-tecgihan-driver
 ```
+
+When installing with the `apt` command above, the user is configured to belong to the `dialout` group in order to enable access to the DMA-03 for Robot amplifier.
+To enable the changes to the group settings, please do one of two methods below.
+
+上記の `apt` コマンドでのインストール時にユーザが DMA-03 for Robot アンプにアクセス可能にするために `dialout` グループに所属するよう設定をしています．
+そのグループ設定の変更を有効化するために下記の2通りの方法のいずれかを実行してください．
 
 To apply the group change, please do one of the following:
 1. Log out and log back in (recommended)
@@ -168,6 +166,8 @@ ros2 launch tecgihan_driver dma03_demo_launch.xml
   `$ROS_DISTRO` : `jazzy` もしくは `humble` で置き換えてください．
 
 ![RViz2 DMA-03 for Robot Demonstration](./doc/images/rviz_dma03-for-robot_demonstration.png)
+
+![Force around Z-axis](doc/images/rviz_foce-z_force-sensor_small.JPG)
 
 To end the demonstration, press Ctrl-C in the terminal.  
 デモンストレーションを終了するときはターミナルで Ctrl-C を押してください．
@@ -410,8 +410,10 @@ If you have an environment where you can use sensor software on a Windows PC, yo
 
 Windows PC でセンサソフトウェアを使用することができる環境があれば次の手順でも可能です．
 
-1. Windows のソフトでパラメータ編集＆ゼロ調整
-2. ROS で通常どおりセンサドライバを launch 起動
+1. Edit and zero adjustment using Windows software  
+    Windows のソフトでパラメータ編集＆ゼロ調整
+2. Launch the ROS sensor driver software normally on Ubuntu  
+    Ubuntu 上で通常どおり ROS センサドライバソフトウェアを起動
 
 ---
 
@@ -1193,3 +1195,177 @@ Also, when you create `tecgihan_driver` debian package, a new udev file will be 
 
 また `tecgihan_driver` の debian パッケージ作成時には自動的に新しい udev ファイルが debian パッケージ内に組み込まれ，debian パッケージインストール直後にユーザのアクセス権限に反映されるように `debian / postinst` で設定しています．
 
+<br>
+
+
+### Development of Linux Software Using the Drivers ( ROS-independent )<br> - ドライバを利用した Linux ソフトウェアの開発（ ROS 非依存 ）
+
+The Python script `dma03_driver.py`, the Linux driver software for the DMA-03 for Robot amplifier, is designed to be ROS-independent.
+Therefore, it can also be used to create non-ROS applications on Linux.
+
+DMA-03 for Robot アンプの Linux ドライバソフトウェアである Python スクリプトの `dma03_driver.py` は ROS に依存しないように作られて
+います．
+そのため Linux 上で非 ROS アプリケーションを作ることにも利用できます．
+
+
+#### Demonstration - デモンストレーション
+
+Connect the DMA-03 for Robot amplifier to your PC, move to the `tecgihan_driver` folder in this package and run Python3 with `dma03_driver.py` as follows, to get the sensed values from the amplifier and display them for 1 second as a demonstration.
+
+DMA-03 for Robot アンプを PC に接続して，次のように本パッケージ内の `tecgihan_driver` フォルダに移動して Python3 で `dma03_driver.py` を実行するとセンシングした値を1秒間アンプから取得して表示するデモンストレーションが実行されます．
+
+``` bash
+cd tecgihan_driver
+python3 dma03_driver.py
+```
+
+**Example of Execution - 実行例**
+``` bash
+robotuser@robotuser-PC:~/tecgihan_ws/src/tecgihan_driver/tecgihan_driver$ python3 dma03_driver.py 
+Tec Gihan DMA-03 for Robot Driver: Starting ...
+Device Location or Serial No. - NOT Specifiedand 1st Device Chosen
+Port Opened: /dev/ttyUSB0
+Connected: DMA-03
+ port: /dev/ttyUSB0
+ baudrate: 6000000
+ bytesize: 8
+ parity: N
+ stopbits: 1
+ xonxoff: False
+ dsrdtr: False
+ rtscts: True
+ timeout: 1.0
+ write_timeout: 2.0
+ inter_byte_timeout: None
+Command Bytes: b'STOP\n'
+Write Data Result (Command Length): 5
+Get reply: STOP_OK
+Command Bytes: b'GET_FOR_ROBOT\n'
+Write Data Result (Command Length): 14
+Get reply: FOR_ROBOT_1
+Command Bytes: b'SET_FREQUENCY_1000\n'
+Write Data Result (Command Length): 19
+Get reply: SET_FREQUENCY_OK
+Command Bytes: b'GET_FS\n'
+Write Data Result (Command Length): 7
+Get reply: FS_1000,1000,2000
+FS (1000,1000,2000)
+Command Bytes: b'GET_ITF\n'
+Write Data Result (Command Length): 8
+Get reply: ITF_1.44023,0.09527,0.00613,-0.08354,1.42638,0.04338,0.01594,0.04522,-1.28155
+ITF [1.44023, 0.09527, 0.00613, -0.08354, 1.42638, 0.04338, 0.01594, 0.04522, -1.28155]
+Convert waiting...
+Convert waiting...
+Command Bytes: b'START\n'
+Convert waiting...
+Write Data Result (Command Length): 6
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Get reply: START_OK
+Time: 1752039463.9249063 (Diff: 0.7044894695281982 )
+Buffer: FF79FF9B0023
+Hex: (     0xff79,     0xff9b,     0x0023 )
+Int: (       -135,       -101,         35 )
+Eng: (   -4.21875,   -3.15625,    1.09375 )
+Time: 1752039463.9263637 (Diff: 0.0014574527740478516 )
+Buffer: FF63FF930019
+Hex: (     0xff63,     0xff93,     0x0019 )
+Int: (       -157,       -109,         25 )
+Eng: (   -4.90625,   -3.40625,    0.78125 )
+:
+:
+.
+
+.
+
+:
+:
+Time: 1752039464.9225755 (Diff: 0.0010793209075927734 )
+Buffer: FF53FF52002B
+Hex: (     0xff53,     0xff52,     0x002b )
+Int: (       -173,       -174,         43 )
+Eng: (   -5.40625,   -5.43750,    1.34375 )
+Convert waiting...
+Convert waiting...
+Command Bytes: b'STOP\n'
+Write Data Result (Command Length): 5
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Get reply: STOP_OK
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Command Bytes: b'STOP\n'
+Write Data Result (Command Length): 5
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Convert waiting...
+Get reply: STOP_OK
+Port Disconnected: /dev/ttyUSB0
+robotuser@robotuser-PC:~/tecgihan_ws/src/tecgihan_driver/tecgihan_driver$
+```
+
+#### Application - 応用
+
+By importing and inheriting or instantiating the `DMA03DriverForRobot` class of `dma03_driver.py` in your Python script, you can create software that utilizes the functions of the driver software.
+
+The basic steps for initializing the `DMA03DriverForRobot` class, starting and stopping data acquisition, and termination of the driver are described in `if __name__ == '__main__':` part of `dma03_driver.py`.
+There is the [`DMA03DriverForRobot` class API document tecgihan_driver / doc / dma03_driver.md](doc/dma03_driver.md#class-dma03driverforrobot), so please refer to it as well.
+
+Python スクリプトで `dma03_driver.py` の `DMA03DriverForRobot` クラスをインポートして継承もしくはインスタンス化することでドライバソフトウェアの機能を利用したソフトウェアを作成することができます．
+
+`dma03_driver.py` の `if __name__ == '__main__':` 部分に `DMA03DriverForRobot` クラスをインスタンス化した場合の初期化やデータ取得の開始・停止，ドライバの終了の基本的な手順が書かれています．
+また，[`DMA03DriverForRobot` クラス API ドキュメント tecgihan_driver / doc / dma03_driver.md](doc/dma03_driver.md#class-dma03driverforrobot) もありますので併せて参考にしてください．
+
+``` python
+if __name__ == '__main__':
+
+    initialize_ = False
+    driver = DMA03DriverForRobot(debug=True, init_zero=initialize_)
+
+    if driver.is_connected():
+        fs_list = [1000, 1000, 2000]
+        itf_list = [1.44023, 0.09527, 0.00613,
+                    -0.08354, 1.42638, 0.04338,
+                    -0.01594, -0.04522, 1.28155]
+        if initialize_:
+            reply = driver.set_fs(val_list=fs_list)
+            reply = driver.set_itf(val_list=itf_list)
+
+        reply = driver.start()
+        time.sleep(1)
+
+        reply = driver.stop()
+        time.sleep(1)
+
+        driver.close()
+```
+
+<br>
+
+
+### Package Maintainance - パッケージメンテナンス
+
+The file below summarizes the documentation for `tecgihan_driver` package maintainers.
+
+下記ファイルに `tecgihan_driver` パッケージのメンテナー向けのドキュメントをまとめています．
+
+- [tecgihan_driver パッケージメンテナンス](doc/maintainance.md)
+  - [doc / maintainance.md](doc/maintainance.md)
