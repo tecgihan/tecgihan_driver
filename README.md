@@ -736,7 +736,7 @@ sudo apt full-upgrade
 source /opt/ros/$ROS_DISTRO/setup.bash
 mkdir -p ~/tecgihan_ws/src
 cd ~/tecgihan_ws/src/
-git clone https://github.com/tork-a/tecgihan_driver.git
+git clone https://github.com/tecgihan/tecgihan_driver.git
 cd ~/tecgihan_ws
 rosdep install -y -r --from-paths src --ignore-src
 colcon build
