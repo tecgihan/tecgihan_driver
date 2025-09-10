@@ -194,14 +194,13 @@ class DMA03DriverForRobot(DMA03Driver):
                                             Defaults to None.
         """
         print('Tec Gihan DMA-03 for Robot Driver: Starting ...')
-        product_name_for_searching = 'DMA-03'
+        search_name = 'DMA-03'
         port = '/dev/ttyUSB0'
         product_name = 'DMA-03B'
         info = self._find_port_by_name(
-            product_name=product_name_for_searching, serial_number=serial_number, location=location)
+            product_name=search_name, serial_number=serial_number, location=location)
         port = info["port"]
         product_name = info["product"]
-        
         self._open(port, product_name, timeout=timeout)
         time.sleep(1)
 
@@ -231,7 +230,6 @@ class DMA03DriverForRobot(DMA03Driver):
         else:
             self._fs_ch1, self._fs_ch2, self._fs_ch3 = 1000, 1000, 1000
             print("FS read failed, using default values (1000,1000,1000)")
-        
         self.get_itf()
 
         self._assigning = False
