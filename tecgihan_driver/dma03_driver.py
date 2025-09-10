@@ -9,16 +9,25 @@ import serial.tools.list_ports
 class DMA03Driver:
     """Serial port I/O class for DMA-03 for Robot amplifier."""
 
-    def _open(self, port='/dev/ttyUSB0', timeout=1.0):
+    def _open(self, port='/dev/ttyUSB0', product_name='DMA-03B', timeout=1.0):
         """Open a serial port.
 
         Args:
             port (str, optional): The device port. Defaults to '/dev/ttyUSB0'.
-            timeout (float, optional): Set a read timeout value in seconds.
-                                        Defaults to 1.0.
+            product_name (str, optional): Amplifier product name. Defaults to "DMA-03B".
+            timeout (float, optional): Set a read timeout value in seconds. Defaults to 1.0.
         """
+
+        if product_name == "DMA-03":
+            baudrate = 6000000
+        elif product_name == "DMA-03B":
+            baudrate = 3000000
+        else:
+            baudrate = 3000000
+            print(f"Warning: Unknown product_name '{product_name}', using 3000000 baud")
+
         self._ser = serial.Serial(port=port,
-                                  baudrate=6000000,
+                                  baudrate=baudrate,
                                   parity=serial.PARITY_NONE,
                                   bytesize=serial.EIGHTBITS,
                                   stopbits=serial.STOPBITS_ONE,
@@ -133,17 +142,26 @@ class DMA03Driver:
                     if port.serial_number and serial_number in port.serial_number:
                         print(
                             'Device Serial No. Specified: {}'.format(port.serial_number))
-                        return port.device
+                        return {
+                            "port": port.device,
+                            "product": port.product
+                        }
                 elif location:
                     if port.location and location in port.location:
                         print(
                             'Device Location Specified: {}'.format(port.location))
-                        return port.device
+                        return {
+                            "port": port.device,
+                            "product": port.product
+                        }
                 else:
                     print(
                         'Device Location or Serial No. - NOT Specified' +
                         'and 1st Device Chosen')
-                    return port.device
+                    return {
+                        "port": port.device,
+                        "product": port.product
+                    }
         return None
 
 
@@ -176,11 +194,15 @@ class DMA03DriverForRobot(DMA03Driver):
                                             Defaults to None.
         """
         print('Tec Gihan DMA-03 for Robot Driver: Starting ...')
-        product_name = 'DMA-03'
+        product_name_for_searching = 'DMA-03'
         port = '/dev/ttyUSB0'
-        port = self._find_port_by_name(
-            product_name=product_name, serial_number=serial_number, location=location)
-        self._open(port, timeout=timeout)
+        product_name = 'DMA-03B'
+        info = self._find_port_by_name(
+            product_name=product_name_for_searching, serial_number=serial_number, location=location)
+        port = info["port"]
+        product_name = info["product"]
+        
+        self._open(port, product_name, timeout=timeout)
         time.sleep(1)
 
         if self._is_connected():
@@ -192,12 +214,7 @@ class DMA03DriverForRobot(DMA03Driver):
 
         self._debug = debug
 
-        self._fs_ch1 = 1000
-        self._fs_ch2 = 1000
-        self._fs_ch3 = 1000
-
         self.stop()
-
         self.set_for_robot()
 
         if init_zero:
@@ -208,7 +225,13 @@ class DMA03DriverForRobot(DMA03Driver):
         else:
             self._frequency = 1000
 
-        self.get_fs()
+        fs_list = self.get_fs()
+        if fs_list:
+            self._fs_ch1, self._fs_ch2, self._fs_ch3 = fs_list
+        else:
+            self._fs_ch1, self._fs_ch2, self._fs_ch3 = 1000, 1000, 1000
+            print("FS read failed, using default values (1000,1000,1000)")
+        
         self.get_itf()
 
         self._assigning = False
@@ -395,6 +418,7 @@ class DMA03DriverForRobot(DMA03Driver):
             time.sleep(wait_)  # Wait more than 2.0 seconds
             reply = 'Set ZERO: '
             reply += self._recv_command()
+            self.stop()  # for DMA-03B
             if restart:
                 reply += ' and Restart: '
                 reply += self.start()
@@ -421,11 +445,11 @@ class DMA03DriverForRobot(DMA03Driver):
             print('FS Dimension Error')
             return None
         else:
-            self.fs_ch1 = int(reply[0])
-            self.fs_ch2 = int(reply[1])
-            self.fs_ch3 = int(reply[2])
-            print('FS ({},{},{})'.format(self.fs_ch1, self.fs_ch2, self.fs_ch3))
-            return [self.fs_ch1, self.fs_ch2, self.fs_ch3]
+            reply_fs_ch1 = int(reply[0])
+            reply_fs_ch2 = int(reply[1])
+            reply_fs_ch3 = int(reply[2])
+            print('FS ({},{},{})'.format(reply_fs_ch1, reply_fs_ch2, reply_fs_ch3))
+            return [reply_fs_ch1, reply_fs_ch2, reply_fs_ch3]
 
     def set_fs(self, val_list: list[int]):
         """Set 3 int data of FS (Full Scale) to the amplifier.
@@ -446,7 +470,7 @@ class DMA03DriverForRobot(DMA03Driver):
                     str(i) + '_' + str(val_list[i]) + '\n'
                 self._get_reply(command_string)
         else:
-            print('Get FS Dimension Error: {}/{}'.format(len(fs_list), dim))
+            print('Get FS Dimension Error: {}/{}'.format(len(val_list), dim))
             return False
 
         # Check for each
@@ -458,6 +482,8 @@ class DMA03DriverForRobot(DMA03Driver):
                 overall_result = result = False
             print('Check Value: No.{} Set:{:5} Get:{:5} Check: {}'.format(
                 i, val_list[i], get_list[i], result))
+        if overall_result:
+            self._fs_ch1, self._fs_ch2, self._fs_ch3 = get_list
         return overall_result
 
     def get_itf(self):
@@ -513,7 +539,7 @@ class DMA03DriverForRobot(DMA03Driver):
                     str(i) + '_' + str(val_list[i]) + '\n'
                 self._get_reply(command_string)
         else:
-            print('Set ITF Dimension Error: {}/{}'.format(len(fs_list), dim))
+            print('Set ITF Dimension Error: {}/{}'.format(len(val_list), dim))
             return False
 
         # Check for each
