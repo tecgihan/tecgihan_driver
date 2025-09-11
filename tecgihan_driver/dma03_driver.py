@@ -14,7 +14,7 @@ class DMA03Driver:
 
         Args:
             port (str, optional): The device port. Defaults to '/dev/ttyUSB0'.
-            product_name (str, optional): Amplifier product name. Defaults to "DMA-03B".
+            product_name (str, optional): Amplifier product name. Defaults to 'DMA-03B'.
             timeout (float, optional): Set a read timeout value in seconds. Defaults to 1.0.
         """
         if product_name == 'DMA-03':
@@ -76,7 +76,7 @@ class DMA03Driver:
         return result
 
     def _recv_command(self, terminator=b'\n'):
-        """Read the serial port input buffer until the terminator.
+        r"""Read the serial port input buffer until the terminator.
 
         Args:
             terminator (bytes, optional):
