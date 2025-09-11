@@ -17,10 +17,9 @@ class DMA03Driver:
             product_name (str, optional): Amplifier product name. Defaults to "DMA-03B".
             timeout (float, optional): Set a read timeout value in seconds. Defaults to 1.0.
         """
-
-        if product_name == "DMA-03":
+        if product_name == 'DMA-03':
             baudrate = 6000000
-        elif product_name == "DMA-03B":
+        elif product_name == 'DMA-03B':
             baudrate = 3000000
         else:
             baudrate = 3000000
@@ -77,7 +76,7 @@ class DMA03Driver:
         return result
 
     def _recv_command(self, terminator=b'\n'):
-        r"""Read the serial port input buffer until the terminator.
+        """Read the serial port input buffer until the terminator.
 
         Args:
             terminator (bytes, optional):
@@ -143,24 +142,24 @@ class DMA03Driver:
                         print(
                             'Device Serial No. Specified: {}'.format(port.serial_number))
                         return {
-                            "port": port.device,
-                            "product": port.product
+                            'port': port.device,
+                            'product': port.product
                         }
                 elif location:
                     if port.location and location in port.location:
                         print(
                             'Device Location Specified: {}'.format(port.location))
                         return {
-                            "port": port.device,
-                            "product": port.product
+                            'port': port.device,
+                            'product': port.product
                         }
                 else:
                     print(
                         'Device Location or Serial No. - NOT Specified' +
                         'and 1st Device Chosen')
                     return {
-                        "port": port.device,
-                        "product": port.product
+                        'port': port.device,
+                        'product': port.product
                     }
         return None
 
@@ -199,8 +198,8 @@ class DMA03DriverForRobot(DMA03Driver):
         product_name = 'DMA-03B'
         info = self._find_port_by_name(
             product_name=search_name, serial_number=serial_number, location=location)
-        port = info["port"]
-        product_name = info["product"]
+        port = info['port']
+        product_name = info['product']
         self._open(port, product_name, timeout=timeout)
         time.sleep(1)
 
@@ -229,7 +228,7 @@ class DMA03DriverForRobot(DMA03Driver):
             self._fs_ch1, self._fs_ch2, self._fs_ch3 = fs_list
         else:
             self._fs_ch1, self._fs_ch2, self._fs_ch3 = 1000, 1000, 1000
-            print("FS read failed, using default values (1000,1000,1000)")
+            print('FS read failed, using default values (1000,1000,1000)')
         self.get_itf()
 
         self._assigning = False

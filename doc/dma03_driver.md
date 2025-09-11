@@ -69,7 +69,7 @@ Return the serial port is connected or not.
 ### `_open`()
 
 ```python
-_open(self, port='/dev/ttyUSB0', timeout=1.0)
+_open(self, port='/dev/ttyUSB0', product_name='DMA-03B', timeout=1.0)
 ```
 
 Open a serial port.
@@ -77,8 +77,8 @@ Open a serial port.
 **Args:**
 
 - `port` (str, optional): The device port. Defaults to '/dev/ttyUSB0'.
-- `timeout` (float, optional): Set a read timeout value in seconds.
-  Defaults to 1.0.
+- `product_name` (str, optional): Amplifier product name. Defaults to "DMA-03B".
+- `timeout` (float, optional): Set a read timeout value in seconds. Defaults to 1.0.
 
 
 ### `_print_info`()
@@ -100,7 +100,8 @@ Read the serial port input buffer until the terminator.
 **Args:**
 
 - `terminator` (bytes, optional): 
-  The terminator to end reading. Defaults to b'\n'.
+  The terminator to end reading. Defaults to b'
+  '.
 
 **Returns:**
 
