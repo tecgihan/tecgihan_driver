@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="debug"      default="false" />
+  <arg name="timer"      default="-0.01" />
+  <arg name="frequency"  default="100" />
+  <arg name="acc_range"  default="30" />
+  <arg name="timeout"    default="1.0" />
+  <arg name="serial_no"  default="" />
+  <arg name="location"   default="" />
+  <arg name="frame_id"   default="imu_sensor" />
+  <arg name="node_name"  default="ims_sd_publisher" />
+
+  <node pkg="tecgihan_driver" exec="ims_sd_ros_publisher"
+        name="$(var node_name)"
+        output="screen">
+    <param name="debug"      value="$(var debug)" />
+    <param name="timer"      value="$(var timer)" />
+    <param name="frequency"  value="$(var frequency)" />
+    <param name="acc_range"  value="$(var acc_range)" />
+    <param name="timeout"    value="$(var timeout)" />
+    <param name="serial_no"  value="$(var serial_no)" />
+    <param name="location"   value="$(var location)" />
+    <param name="frame_id"   value="$(var frame_id)" />
+  </node>
+</launch>
