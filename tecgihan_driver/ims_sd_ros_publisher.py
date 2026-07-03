@@ -7,7 +7,6 @@ from sensor_msgs.msg import BatteryState, Imu, MagneticField, Temperature
 import rclpy
 
 from rclpy.node import Node
-from rclpy.parameter import Parameter
 
 from tecgihan_driver.ims_sd_driver import IMSSDDriverForRobot
 
@@ -16,10 +15,14 @@ class IMSSDPublisher(Node):
     """ROS Publisher for IMS-SD.
 
     Published topics:
-        ~/imu         (sensor_msgs/Imu)           - linear acceleration [m/s²] and angular velocity [rad/s]
-        ~/mag         (sensor_msgs/MagneticField)  - magnetic field [T]
-        ~/temperature (sensor_msgs/Temperature)    - temperature [degC]
-        ~/battery     (sensor_msgs/BatteryState)   - battery state of charge
+        ~/imu         (sensor_msgs/Imu)
+            linear acceleration [m/s^2] and angular velocity [rad/s]
+        ~/mag         (sensor_msgs/MagneticField)
+            magnetic field [T]
+        ~/temperature (sensor_msgs/Temperature)
+            temperature [degC]
+        ~/battery     (sensor_msgs/BatteryState)
+            battery state of charge
     """
 
     def __init__(self):

@@ -7,7 +7,8 @@ import serial.tools.list_ports
 
 
 class IMSSDDriver:
-    """Serial port I/O class for IMS-SD.
+    r"""Serial port I/O class for IMS-SD.
+
     IMS-SD communicates via a virtual COM port.
 
     Protocol:
@@ -128,8 +129,7 @@ class IMSSDDriver:
             pass
 
     def _find_port_by_name(self, search_product_name, serial_number=None, location=None):
-        """Find the IMS-SD virtual COM port by name and optionally by
-        serial number or location.
+        """Find the IMS-SD virtual COM port by name, serial number, or location.
 
         Discovery strategy:
           1. If serial_number is given, match port.serial_number.
@@ -283,7 +283,7 @@ class IMSSDDriverForRobot(IMSSDDriver):
         print('Connected: {}'.format(product_name))
 
         self._convert_data = False
-        
+
         # Initialize device
         self.stop()
 
@@ -298,8 +298,10 @@ class IMSSDDriverForRobot(IMSSDDriver):
             if self.set_frequency(frequency):
                 self._frequency = frequency
             else:
-                self._frequency = current_frequency if current_frequency is not None else frequency
-                print('IMS-SD: set_frequency failed, keeping frequency: {}'.format(self._frequency))
+                self._frequency = (
+                    current_frequency if current_frequency is not None else frequency)
+                print('IMS-SD: set_frequency failed, keeping frequency: {}'.format(
+                    self._frequency))
         else:
             self._frequency = frequency
             print('IMS-SD: Frequency already set to {}Hz, skipping'.format(frequency))
