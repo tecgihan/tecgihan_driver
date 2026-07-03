@@ -439,7 +439,7 @@ class IMSSDDriverForRobot(IMSSDDriver):
         self._soc = float(ad_soc)
 
     def _ros_publish(self):
-        """Placeholder overridden by a ROS node after data conversion.
+        """Provide a placeholder overridden by a ROS node after data conversion.
 
         Returns:
             bool: False (no-op in base class).
