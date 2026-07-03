@@ -191,11 +191,13 @@ def main(args=None):
             dma03_publisher.get_logger().info('KeyboardInterrupt Received')
         finally:
             dma03_publisher.cleanup()
-            rclpy.shutdown()
+            if rclpy.ok():
+                rclpy.shutdown()
     else:
         dma03_publisher.get_logger().info('Not Initialized and Stop')
         dma03_publisher.cleanup()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':

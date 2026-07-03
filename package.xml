@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>tecgihan_driver</name>
-  <version>0.1.2</version>
+  <version>0.2.0</version>
   <description>Linux and ROS driver software for Tec Gihan sensor amplifiers for robots</description>
   <maintainer email="s.wakida@tecgihan.co.jp">Shigeru Wakida</maintainer>
   <maintainer email="dev@opensource-robotics.tokyo.jp">TORK</maintainer>

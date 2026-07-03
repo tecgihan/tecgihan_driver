@@ -8,7 +8,7 @@ package_name = 'tecgihan_driver'
 
 setup(
     name=package_name,
-    version='0.1.2',
+    version='0.2.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -38,7 +38,8 @@ setup(
         'console_scripts': [
             'dma03_ros_publisher = tecgihan_driver.dma03_ros_publisher:main',
             'force_to_wrench = tecgihan_driver.force_to_wrench:main',
-            'set_udev_rules = tecgihan_driver.set_udev_rules:main'
+            'set_udev_rules = tecgihan_driver.set_udev_rules:main',
+            'ims_sd_ros_publisher = tecgihan_driver.ims_sd_ros_publisher:main',
         ],
     },
 )
