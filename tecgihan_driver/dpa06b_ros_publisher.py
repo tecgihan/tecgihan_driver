@@ -266,7 +266,7 @@ class DPA06BPublisher(Node):
         if list(value_list) == default_list:
             self.get_logger().warn(
                 "Param: '{}' still matches the built-in identity-matrix "
-                "default. If you intended to load custom ITF coefficients, "
+                'default. If you intended to load custom ITF coefficients, '
                 "check that '{}' is defined in your param_file/param_path "
                 'YAML for the current sensor_mode ({}).'.format(
                     param_name, param_name, self._sensor_mode))
