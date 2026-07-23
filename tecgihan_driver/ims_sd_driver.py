@@ -288,15 +288,13 @@ class IMSSDDriverForRobot(IMSSDDriver):
         self.stop()
 
         # Ensure robot mode is enabled
-        for_robot_reply, for_robot_success = self.get_for_robot()
-        if for_robot_reply == 'FOR_ROBOT_0':
-            self.set_for_robot(True)
+        self.set_for_robot()
 
         # frequency
         current_frequency = self.get_frequency()
         if current_frequency != frequency:
             if self.set_frequency(frequency):
-                self._frequency = frequency
+                print('IMS-SD: Frequency set to {}Hz'.format(self._frequency))
             else:
                 self._frequency = (
                     current_frequency if current_frequency is not None else frequency)
@@ -509,16 +507,19 @@ class IMSSDDriverForRobot(IMSSDDriver):
         """
         if frequency <= 100:
             command = 'SET_FREQUENCY_100\n'
-            self._frequency = 100
+            target = 100
         elif frequency <= 500:
             command = 'SET_FREQUENCY_500\n'
-            self._frequency = 500
+            target = 500
         else:
             command = 'SET_FREQUENCY_1000\n'
-            self._frequency = 1000
+            target = 1000
 
         reply = self._get_reply(command)
-        return reply == 'SET_FREQUENCY_OK'
+        success = reply == 'SET_FREQUENCY_OK'
+        if success:
+            self._frequency = target
+        return success
 
     def get_frequency(self):
         """Get current sensing frequency from the amplifier.
@@ -592,17 +593,24 @@ class IMSSDDriverForRobot(IMSSDDriver):
         success = reply in ('FOR_ROBOT_0', 'FOR_ROBOT_1')
         return reply, success
 
-    def set_for_robot(self, enable):
-        """Enable or disable robot mode.
-
-        Args:
-            enable (bool): True to enable robot mode.
+    def set_for_robot(self):
+        """Set the amplifier to robot mode if available or to non-robot mode.
 
         Returns:
-            str: Reply from the amplifier.
+            str: Reply for the command or error message if failure.
         """
-        command = 'SET_FOR_ROBOT_{}\n'.format(1 if enable else 0)
-        return self._get_reply(command)
+        self._convert_data = False
+        reply, success = self.get_for_robot()
+        print('Get For Robot: Reply={}, Success={}'.format(reply, success))
+        self._convert_data = False
+        time.sleep(0.1)
+        set_reply = 'Set for Robot: Error'
+        if success and reply == 'FOR_ROBOT_0':
+            set_reply = self._get_reply('SET_FOR_ROBOT_1\n')
+            print('Set For Robot 1: Reply={}'.format(set_reply))
+        else:
+            print('Set For Robot 1: Skipped (Reply={}, Success={})'.format(reply, success))
+        return set_reply
 
     def get_data(self):
         """Return the latest engineering data snapshot.

@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+  Placeholder URDF model for a DPA-06B setup with two 3-axis force sensors
+  mounted side by side (sensor_mode: '3axis').
+
+  This is a SIMPLIFIED PLACEHOLDER for visualization purposes only
+  (box geometry, approximate spacing). Replace dimensions / mesh files
+  with the actual sensor enclosure model as needed.
+
+  Usage (see dpa06b_demo_launch.xml):
+    xacro DPA06B-2sensors.xacro \
+        sensor1_frame_id:=force_sensor1 \
+        sensor2_frame_id:=force_sensor2 \
+        sensor_spacing:=0.08
+-->
+<robot name="dpa06b_2sensors" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:arg name="sensor1_frame_id" default="force_sensor1" />
+  <xacro:arg name="sensor2_frame_id" default="force_sensor2" />
+  <!-- Distance [m] between the two sensor frames, centered on base_link -->
+  <xacro:arg name="sensor_spacing" default="0.08" />
+
+  <xacro:property name="sensor1_frame_id" value="$(arg sensor1_frame_id)" />
+  <xacro:property name="sensor2_frame_id" value="$(arg sensor2_frame_id)" />
+  <xacro:property name="sensor_spacing" value="$(arg sensor_spacing)" />
+
+  <material name="tg_grey">
+    <color rgba="0.6 0.6 0.6 1.0" />
+  </material>
+  <material name="tg_red">
+    <color rgba="0.8 0.1 0.1 1.0" />
+  </material>
+
+  <link name="base_link" />
+
+  <!-- Common mounting base for the amplifier / sensor pair -->
+  <link name="force_sensor_base">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.03 ${sensor_spacing + 0.03} 0.01" />
+      </geometry>
+      <material name="tg_grey" />
+    </visual>
+  </link>
+
+  <joint name="force_sensor_base_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="force_sensor_base" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+
+  <!-- Sensor 1 (dpa06b_ros_publisher ~/force1, ch1-3) -->
+  <link name="${sensor1_frame_id}">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.02 0.02 0.006" />
+      </geometry>
+      <material name="tg_red" />
+    </visual>
+  </link>
+
+  <joint name="${sensor1_frame_id}_joint" type="fixed">
+    <parent link="force_sensor_base" />
+    <child link="${sensor1_frame_id}" />
+    <origin xyz="0 ${-sensor_spacing / 2.0} 0.008" rpy="0 0 0" />
+  </joint>
+
+  <!-- Sensor 2 (dpa06b_ros_publisher ~/force2, ch4-6) -->
+  <link name="${sensor2_frame_id}">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.02 0.02 0.006" />
+      </geometry>
+      <material name="tg_red" />
+    </visual>
+  </link>
+
+  <joint name="${sensor2_frame_id}_joint" type="fixed">
+    <parent link="force_sensor_base" />
+    <child link="${sensor2_frame_id}" />
+    <origin xyz="0 ${sensor_spacing / 2.0} 0.008" rpy="0 0 0" />
+  </joint>
+
+</robot>

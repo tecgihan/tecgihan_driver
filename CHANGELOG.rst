@@ -2,6 +2,16 @@
 Changelog for package tecgihan_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2026-07-22)
+------------------
+Added
+- Added support for DPA-06B (3axis x2 / 6axis sensor_mode).
+
+Fixed
+- Fix minor bugs in existing drivers
+
+Contributors: Ryota Amakawa
+
 0.2.0 (2026-06-30)
 ------------------
 Added
