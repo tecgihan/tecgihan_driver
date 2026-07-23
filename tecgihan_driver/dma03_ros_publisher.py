@@ -14,11 +14,7 @@ class DMA03Publisher(Node):
     """ROS Publisher for DMA-03 for Robot amplifier."""
 
     def __init__(self):
-        """Construct DMA03Publisher.
-
-        Args:
-            str: Node name.
-        """
+        """Construct DMA03Publisher."""
         super().__init__('dma03_publisher')
 
         # ROS Parameters

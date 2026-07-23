@@ -1,0 +1,65 @@
+<!--
+    Launch dpa06b_ros_publisher.py with parameter settings.
+    dpa06b_ros_publisher.py のソフトウェアをパラメータ設定と合わせて起動する
+    ROS launch ファイル．
+-->
+<launch>
+  <arg name="debug" default="false"
+       description="Enable debug mode." />
+  <arg name="timer" default="-0.01"
+       description="Publish timer period [sec]. If &lt;= 0, data-driven publish is used." />
+  <arg name="frequency" default="1000"
+       description="Sensing frequency [Hz]." />
+  <arg name="init_zero" default="false"
+       description="Set ZERO on start." />
+  <arg name="set_fs" default="false"
+       description="Set FS coefficients on start." />
+  <arg name="set_itf_3axis_sensor1" default="false"
+       description="Set ITF coefficients on start (3axis mode, sensor 1)." />
+  <arg name="set_itf_3axis_sensor2" default="false"
+       description="Set ITF coefficients on start (3axis mode, sensor 2)." />
+  <arg name="set_itf_6axis" default="false"
+       description="Set ITF coefficients on start (6axis mode)." />
+  <arg name="timeout" default="1.0"
+       description="Serial communication timeout [sec]." />
+  <arg name="param_file" default="UL100901.yaml"
+       description="YAML file name (in the tecgihan_driver package 'config' folder) that contains FS/ITF coefficients ('fs_list' and, depending on sensor_mode, 'itf_3axis_sensor1_list' / 'itf_3axis_sensor2_list' / 'itf_6axis_list') under 'ros__parameters'." />
+  <arg name="param_path" default="$(find-pkg-share tecgihan_driver)/config/$(var param_file)"
+       description="Full path to the YAML file that contains FS/ITF coefficients. Defaults to param_file inside the package 'config' folder. Set this explicitly to use a YAML file outside the package (takes precedence over param_file). Must point to an existing file, or launch will fail; if you don't need to load a coefficients file, use dpa06b_ros_launch.py instead, which skips a missing file safely." />
+  <arg name="sensor_mode" default="3axis"
+       description="Sensor configuration: '3axis' (3-axis x 2) or '6axis' (6-axis x 1)." />
+  <arg name="serial_no" default=""
+       description="Device serial number to distinguish between multiple amplifiers." />
+  <arg name="location" default=""
+       description="Device location like '1-2' to distinguish between multiple amplifiers." />
+  <arg name="frame_id_sensor1" default="force_sensor1"
+       description="Frame ID for ~/force1 (3axis mode, sensor 1)." />
+  <arg name="frame_id_sensor2" default="force_sensor2"
+       description="Frame ID for ~/force2 (3axis mode, sensor 2)." />
+  <arg name="frame_id" default="force_sensor"
+       description="Frame ID for ~/wrench (6axis mode)." />
+  <arg name="node_name" default="dpa06b_publisher"
+       description="ROS Node name. Change this when running multiple amplifiers simultaneously." />
+
+  <node pkg="tecgihan_driver" exec="dpa06b_ros_publisher"
+        name="$(var node_name)" output="screen">
+    <param from="$(var param_path)" />
+    <param name="debug" value="$(var debug)" />
+    <param name="timer" value="$(var timer)" />
+    <param name="frequency" value="$(var frequency)" />
+    <param name="init_zero" value="$(var init_zero)" />
+    <param name="set_fs" value="$(var set_fs)" />
+    <param name="set_itf_3axis_sensor1" value="$(var set_itf_3axis_sensor1)" />
+    <param name="set_itf_3axis_sensor2" value="$(var set_itf_3axis_sensor2)" />
+    <param name="set_itf_6axis" value="$(var set_itf_6axis)" />
+    <param name="timeout" value="$(var timeout)" />
+    <param name="param_file" value="$(var param_file)" />
+    <param name="param_path" value="$(var param_path)" />
+    <param name="sensor_mode" value="$(var sensor_mode)" />
+    <param name="serial_no" value="$(var serial_no)" />
+    <param name="location" value="$(var location)" />
+    <param name="frame_id_sensor1" value="$(var frame_id_sensor1)" />
+    <param name="frame_id_sensor2" value="$(var frame_id_sensor2)" />
+    <param name="frame_id" value="$(var frame_id)" />
+  </node>
+</launch>

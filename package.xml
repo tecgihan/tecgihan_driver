@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>tecgihan_driver</name>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <description>Linux and ROS driver software for Tec Gihan sensor amplifiers for robots</description>
   <maintainer email="s.wakida@tecgihan.co.jp">Shigeru Wakida</maintainer>
   <maintainer email="dev@opensource-robotics.tokyo.jp">TORK</maintainer>
@@ -19,6 +19,8 @@
   <exec_depend>xacro</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>python3-serial</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz2</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

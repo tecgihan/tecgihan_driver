@@ -130,8 +130,10 @@ class DMA03Driver:
             location (str, optional): The device location like '1-2'. Defaults to None.
 
         Returns:
-            Union[str, None]:
-                - str: The port device string like '/dev/ttyUSB0'.
+            Union[dict, None]:
+                - dict: Matched device information.
+                    - 'port' (str): The port device string like '/dev/ttyUSB0'.
+                    - 'product' (str): The product name of the matched device.
                 - None: The args did not match the actual device connected.
         """
         ports = serial.tools.list_ports.comports()

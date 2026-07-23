@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!--
+  Launch the DPA-06B demonstration ('3axis' mode: 2 x 3-axis sensors).
+  DPA-06B アンプ ('3axis' モード：3軸センサ x 2) のデモンストレーションを
+  起動する ROS launch ファイル．
+
+  Visualizes both sensors (~/force1, ~/force2) as two Wrench arrows in RViz,
+  each placed at its own TF frame (sensor1_frame_id / sensor2_frame_id).
+-->
+<launch>
+
+  <arg name="sensor1_frame_id" default="force_sensor1" />
+  <arg name="sensor2_frame_id" default="force_sensor2" />
+  <arg name="sensor_spacing" default="0.08"
+       description="Distance [m] between the two sensor frames in the placeholder model." />
+  <arg name="model_file" default="DPA06B-2sensors.xacro" />
+  <arg name="param_file" default="DPA-06_3AXIS_DEF.yaml"
+       description="YAML file name (in the tecgihan_driver package 'config' folder)." />
+  <arg name="param_path" default="$(find-pkg-share tecgihan_driver)/config/$(var param_file)"
+       description="Full path to a YAML file. Defaults to param_file inside the package 'config' folder. Set this explicitly to use a YAML file outside the package (takes precedence over param_file, mirrors dpa06b_ros_launch.xml)." />
+
+  <!-- Start the DPA-06B publisher (3axis mode -> ~/force1, ~/force2), each
+       stamped with its own frame_id_sensor1 / frame_id_sensor2. -->
+  <include file="$(find-pkg-share tecgihan_driver)/launch/dpa06b_ros_launch.xml">
+    <arg name="sensor_mode" value="3axis" />
+    <arg name="init_zero" value="true" />
+    <arg name="param_file" value="$(var param_file)" />
+    <arg name="param_path" value="$(var param_path)" />
+    <arg name="frame_id_sensor1" value="$(var sensor1_frame_id)" />
+    <arg name="frame_id_sensor2" value="$(var sensor2_frame_id)" />
+  </include>
+
+  <!-- Convert ~/force1 (sensor 1, ch1-3) to WrenchStamped.
+       frame_id is left as-is (already force_sensor1 from the publisher). -->
+  <node pkg="tecgihan_driver" exec="force_to_wrench" name="force_to_wrench_1">
+    <param name="input_topic" value="/dpa06b_publisher/force1" />
+    <param name="output_topic" value="/dpa06b_publisher/wrench1" />
+  </node>
+
+  <!-- Convert ~/force2 (sensor 2, ch4-6) to WrenchStamped.
+       frame_id is left as-is (already force_sensor2 from the publisher). -->
+  <node pkg="tecgihan_driver" exec="force_to_wrench" name="force_to_wrench_2">
+    <param name="input_topic" value="/dpa06b_publisher/force2" />
+    <param name="output_topic" value="/dpa06b_publisher/wrench2" />
+  </node>
+
+  <node pkg="robot_state_publisher"
+        exec="robot_state_publisher"
+        name="robot_state_publisher">
+    <param name="robot_description"
+           type="str"
+           value="$(command 'xacro $(find-pkg-share tecgihan_driver)/urdf/$(var model_file)
+                    sensor1_frame_id:=$(var sensor1_frame_id)
+                    sensor2_frame_id:=$(var sensor2_frame_id)
+                    sensor_spacing:=$(var sensor_spacing)')" />
+  </node>
+
+  <node pkg="rviz2" exec="rviz2"
+        args="-d $(find-pkg-share tecgihan_driver)/launch/dpa06b_demo.rviz" />
+
+</launch>

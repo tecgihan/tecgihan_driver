@@ -48,8 +48,10 @@ Find a serial port by a device name and optionally by a device location.
 
 **Returns:**
 
-- `Union[str, None]`:
-  - str: The port device string like '/dev/ttyUSB0'.
+- `Union[dict, None]`:
+  - dict: Matched device information.
+    - `port` (str): The port device string like '/dev/ttyUSB0'.
+    - `product` (str): The product name of the matched device.
   - None: The args did not match the actual device connected.
 
 

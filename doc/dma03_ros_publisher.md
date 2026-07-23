@@ -12,10 +12,6 @@ __init__(self)
 
 Construct DMA03Publisher.
 
-**Args:**
-
-- `str`: Node name.
-
 
 ### `cleanup`()
 
@@ -62,4 +58,3 @@ main(args=None)
 ```
 
 Execute ROS Node with DMA03Publisher.
-

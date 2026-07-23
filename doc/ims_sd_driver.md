@@ -359,18 +359,20 @@ Set accelerometer full-scale range.
 ### `set_for_robot`()
 
 ```python
-set_for_robot(self, enable)
+set_for_robot(self)
 ```
 
-Enable or disable robot mode.
+Set the amplifier to robot mode if available or to non-robot mode.
 
-**Args:**
-
-- `enable` (bool): True to enable robot mode.
+Checks the current robot-mode state via `get_for_robot()`. If the
+amplifier is currently disabled (`FOR_ROBOT_0`), sends the command to
+enable robot mode. Does not support disabling robot mode once set.
 
 **Returns:**
 
-- `str`: Reply from the amplifier.
+- `str`: Reply for the command (e.g. `'FOR_ROBOT_1'`) on success, or an
+  error message (`'Set for Robot: Error'`) if the amplifier could not
+  be queried or the command failed.
 
 
 ### `set_frequency`()

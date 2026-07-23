@@ -13,7 +13,8 @@ This package contains softwares for Tec Gihan Co.,Ltd. sensor amplifiers running
   - IMU Sensors - IMUセンサ
     - [IMS-SD](https://tecgihan.co.jp/product/datalogger/imssd.html) ※ファームウェアVer2.3.0以降がROSに対応
   - Strain Gauge Amplifiers for Robot - ロボット用ひずみゲージアンプ
-    - [DMA-03 3chひずみゲージアンプ](https://tecgihan.co.jp/product/forcesensor/amp/dma03.html)
+    - [DMA-03 小型演算3CHひずみアンプ](https://tecgihan.co.jp/product/forcesensor/amp/dma03.html)
+    - [DPA-06B 小型6CH演算アンプ](https://tecgihan.co.jp/product/forcesensor/amp/dpa06.html) - 6軸センサまたは3軸センサx2に対応
   - [Force Sensors - 力覚センサ](https://tecgihan.co.jp/product/forcesensor/sensor/)
     - センサ一例
     - [USL06-H5 Series](https://tecgihan.co.jp/product/forcesensor/sensor/usl06.html)
@@ -108,6 +109,54 @@ This package contains softwares for Tec Gihan Co.,Ltd. sensor amplifiers running
        + `temperature` : `float64` - [degC]
      * `~/battery` : `sensor_msgs/BatteryState`
        + `percentage` : `float32` - 0.0 (0%) to 1.0 (100%)
+
+## Software Configurations of DPA-06B Amplifier Driver<br> - DPA-06B アンプドライバソフトウェア構成
+
+DPA-06B supports two sensor configurations, selectable with the `sensor_mode` launch option: `3axis` (two 3-axis sensors) or `6axis` (one 6-axis sensor).  
+
+DPA-06B は `sensor_mode` 起動オプションで選択できる2つのセンサ構成に対応しています．`3axis`（3軸センサ x2）と `6axis`（6軸センサ x1）です．
+
+### Launch Files - Launch ファイル
+
+1. **dpa06b_demo_launch.xml**
+    - ROS launch file to launch the DPA-06B amplifier demonstration (`3axis` mode: 2 x 3-axis sensors). Visualizes both sensors (`~/force1`, `~/force2`) as two Wrench arrows in RViz, using the placeholder URDF model `DPA06B-2sensors.xacro`.  
+      DPA-06B アンプのデモンストレーション（`3axis` モード：3軸センサ x2）を起動する ROS launch ファイル．プレースホルダ URDF モデル `DPA06B-2sensors.xacro` を使用し，両センサ（`~/force1`, `~/force2`）を RViz 上に2本のレンチ（Wrench）の矢印として表示します．
+2. **dpa06b_ros_launch.py** / **dpa06b_ros_launch.xml**
+    - ROS launch file that launches the software of `dpa06b_ros_publisher.py` with parameter settings  
+      `dpa06b_ros_publisher.py` のソフトウェアをパラメータ設定と合わせて起動する ROS launch ファイル
+
+### Python Scripts - Python スクリプト
+
+1. **dpa06b_driver.py**
+    - Linux software for DPA-06B amplifier communication and control  
+      DPA-06B アンプの Linux デバイス通信・制御ソフトウェア
+    - Linux software that does not depend on ROS  
+      ROS には依存していない Linux ソフトウェア
+    - Contains the `DPA06BDriverForRobot` class, which supports both `3axis` and `6axis` sensor modes (separate FS/ITF read-write methods per mode: `set_itf_3axis_sensor1`, `set_itf_3axis_sensor2`, `set_itf_6axis`, etc.)  
+      `DPA06BDriverForRobot` クラスを含み，`3axis`・`6axis` 両方のセンサモードに対応しています（モード毎に個別の FS/ITF 読み書きメソッド：`set_itf_3axis_sensor1`, `set_itf_3axis_sensor2`, `set_itf_6axis` 等）
+2. **dpa06b_ros_publisher.py**
+    - ROS wrapper that publishes data retrieved using 1 as ROS Topics  
+      1 を利用して取得したデータを ROS トピックとして発行する ROS ラッパー
+    - Publish when data is acquired from the amplifier, or by a timer event  
+      アンプからのデータ取得時に発行，もしくはタイマーイベントによる発行
+    - Published topics depend on `sensor_mode` - 発行されるトピックは `sensor_mode` により異なります
+      - `sensor_mode:=3axis` (default - デフォルト)
+        - `~/force1` : `Vector3Stamped` - sensor 1 (ch1-3), `frame_id` from `frame_id_sensor1`  
+          センサ1（ch1-3），`header.frame_id` は `frame_id_sensor1` の値
+        - `~/force2` : `Vector3Stamped` - sensor 2 (ch4-6), `frame_id` from `frame_id_sensor2`  
+          センサ2（ch4-6），`header.frame_id` は `frame_id_sensor2` の値
+      - `sensor_mode:=6axis`
+        - `~/wrench` : `WrenchStamped` - `wrench.force`(x,y,z) + `wrench.torque`(x,y,z), `frame_id` from `frame_id`  
+          `wrench.force`(x,y,z) と `wrench.torque`(x,y,z)，`header.frame_id` は `frame_id` の値
+    - `Vector3Stamped` / `WrenchStamped` message types are the same as described in the DMA-03 section above.  
+      `Vector3Stamped` / `WrenchStamped` メッセージ型は上記 DMA-03 の節で説明した内容と同じです．
+3. **DPA06B-2sensors.xacro**
+    - A simplified placeholder URDF model (`3axis` mode, 2 sensors) used by `dpa06b_demo_launch.xml` for RViz visualization. Box geometry / approximate spacing only; replace with the actual sensor enclosure model as needed.  
+      `dpa06b_demo_launch.xml` が RViz 表示用に使用する簡易的なプレースホルダ URDF モデル（`3axis` モード，2センサ構成）．ボックス形状・概算の間隔のみのため，必要に応じて実際のセンサ筐体モデルに置き換えてください．
+
+`force_to_wrench.py` (see DMA-03 section above) is also used in `dpa06b_demo_launch.xml` to convert `~/force1` / `~/force2` (`Vector3Stamped`) into `~/wrench1` / `~/wrench2` (`WrenchStamped`) for RViz display.  
+
+`force_to_wrench.py`（上記 DMA-03 の節参照）は `dpa06b_demo_launch.xml` 内でも使用されており，`~/force1` / `~/force2`（`Vector3Stamped`）を RViz 表示用の `~/wrench1` / `~/wrench2`（`WrenchStamped`）に変換しています．
 
 <br><br>
 
@@ -827,6 +876,263 @@ ros2 launch tecgihan_driver ims_sd_ros_launch.py location:=1-1 node_name:=ims_sd
 
 <br><br>
 
+## DPA-06B Running the Demonstration - DPA-06B デモンストレーションの実行
+
+Connect DPA-06B Amplifier to a USB Socket on your Ubuntu PC.  
+DPA-06B アンプを Ubuntu PC の USB ソケットに接続します．
+
+Open a terminal and run the following command to launch RViz, the ROS visualization tool.
+This launches the `3axis` mode demonstration (2 x 3-axis sensors) and visualizes both sensors (`~/force1`, `~/force2`) as two Wrench arrows in RViz, using the placeholder URDF model `DPA06B-2sensors.xacro`.
+
+ターミナルを起動し，次のコマンドを実行すると ROS の視覚化ツールの RViz が起動します．
+これは `3axis` モード（3軸センサ x2）のデモンストレーションを起動し，プレースホルダ URDF モデル `DPA06B-2sensors.xacro` を使用して両センサ（`~/force1`, `~/force2`）を RViz 上に2本のレンチ（Wrench）の矢印として表示します．
+
+```bash
+source /opt/ros/$ROS_DISTRO/setup.bash
+ros2 launch tecgihan_driver dpa06b_demo_launch.xml
+```
+
+- `$ROS_DISTRO` : Replace as `jazzy` or `humble`  
+  `$ROS_DISTRO` : `jazzy` もしくは `humble` で置き換えてください．
+
+To end the demonstration, press Ctrl-C in the terminal.  
+デモンストレーションを終了するときはターミナルで Ctrl-C を押してください．
+
+<br><br>
+
+## How to Run DPA-06B - DPA-06B の実行方法
+
+Connect DPA-06B Amplifier to a USB Socket on your Ubuntu PC.  
+DPA-06B アンプを Ubuntu PC の USB ソケットに接続します．
+
+Open 2 terminals and enter the following commands.  
+ターミナルを 2つ 起動し，次のコマンドを実行してください．
+
+**Terminal-1 - ターミナル-1**
+
+```bash
+source /opt/ros/$ROS_DISTRO/setup.bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py
+```
+
+Or if you build from source.  
+もしくはソースビルドした場合．
+
+```bash
+source ~/tecgihan_ws/install/setup.bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py
+```
+
+- `$ROS_DISTRO` : Replace as `jazzy` or `humble`  
+  `$ROS_DISTRO` : `jazzy` もしくは `humble` で置き換えてください．
+
+**Terminal-2 - ターミナル-2**
+
+```bash
+source /opt/ros/$ROS_DISTRO/setup.bash
+```
+
+Or if you build from source.  
+もしくはソースビルドした場合．
+
+```bash
+source ~/tecgihan_ws/install/setup.bash
+```
+
+`ros2 topic list` returns a list of all the topics currently active in the system.  
+`ros2 topic list` は現状でアクティブな ROS トピックのリストを表示します．
+
+```bash
+ros2 topic list
+```
+
+```bash
+$ ros2 topic list
+/dpa06b_publisher/force1
+/dpa06b_publisher/force2
+/parameter_events
+/rosout
+$
+```
+
+The topics above are for the default `sensor_mode:=3axis`. With `sensor_mode:=6axis`, `/dpa06b_publisher/wrench` is published instead.  
+上記は デフォルトの `sensor_mode:=3axis` の場合のトピックです．`sensor_mode:=6axis` の場合は代わりに `/dpa06b_publisher/wrench` が発行されます．
+
+`ros2 topic echo` shows the published data in the ROS Topic.  
+`ros2 topic echo` は ROS トピックで発行されているデータの値を表示します．
+
+```bash
+ros2 topic echo /dpa06b_publisher/force1
+```
+
+Press Ctrl-C to Quit.  
+Ctrl-C を押して終了．
+
+### Launch Options and Default Values (DPA-06B) - 起動オプションとデフォルト値（DPA-06B）
+
+By adding options when executing the launch file, you can launch with settings different from the default values.  
+ローンチファイル実行時にオプションを付加することでデフォルト値と異なる設定で起動できます．
+
+For Example - 例
+
+```bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py sensor_mode:=6axis debug:=true
+```
+
+- `sensor_mode:=3axis`
+  - string
+  - Sensor configuration - センサ構成
+  - `3axis` : 3-axis sensor x 2. Publishes `~/force1`, `~/force2`.  
+    3軸センサ x2．`~/force1`, `~/force2` を発行．
+  - `6axis` : 6-axis sensor x 1. Publishes `~/wrench`.  
+    6軸センサ x1．`~/wrench` を発行．
+- `set_itf_3axis_sensor1:=false`
+  - bool
+  - `true` : Write the `itf_3axis_sensor1_list` ITF value read at launch to the amplifier (`3axis` mode, sensor 1). No effect in `6axis` mode.  
+    起動時に読み込んだ `itf_3axis_sensor1_list` の ITF 値をアンプに書き込む（`3axis` モード，センサ1）．`6axis` モードでは効果なし．
+- `set_itf_3axis_sensor2:=false`
+  - bool
+  - `true` : Write the `itf_3axis_sensor2_list` ITF value read at launch to the amplifier (`3axis` mode, sensor 2). No effect in `6axis` mode.  
+    起動時に読み込んだ `itf_3axis_sensor2_list` の ITF 値をアンプに書き込む（`3axis` モード，センサ2）．`6axis` モードでは効果なし．
+- `set_itf_6axis:=false`
+  - bool
+  - `true` : Write the `itf_6axis_list` ITF value read at launch to the amplifier (`6axis` mode). No effect in `3axis` mode.  
+    起動時に読み込んだ `itf_6axis_list` の ITF 値をアンプに書き込む（`6axis` モード）．`3axis` モードでは効果なし．
+- `frame_id_sensor1:=force_sensor1`
+  - string
+  - `frame_id` for `~/force1` (`3axis` mode, sensor 1) - `~/force1` の `frame_id`（`3axis` モード，センサ1）
+- `frame_id_sensor2:=force_sensor2`
+  - string
+  - `frame_id` for `~/force2` (`3axis` mode, sensor 2) - `~/force2` の `frame_id`（`3axis` モード，センサ2）
+- `frame_id:=force_sensor`
+  - string
+  - `frame_id` for `~/wrench` (`6axis` mode) - `~/wrench` の `frame_id`（`6axis` モード）
+- `node_name:=dpa06b_publisher`
+  - string
+  - ROS Node name. Change this when running multiple amplifiers simultaneously.  
+    ROS ノード名．複数のアンプを同時に動作させる場合に変更します．
+
+Other options (`debug`, `timer`, `frequency`, `init_zero`, `timeout`, `set_fs`, `param_file`, `param_path`, `serial_no`, `location`) behave the same as described in "Launch Options and Default Values" for DMA-03 above.
+
+その他のオプション（`debug`, `timer`, `frequency`, `init_zero`, `timeout`, `set_fs`, `param_file`, `param_path`, `serial_no`, `location`）は上記 DMA-03 の「起動オプションとデフォルト値」の説明と同様に動作します．
+
+
+### Creating and Loading a Parameter File (DPA-06B)<br> - パラメータファイルの作成と読込（DPA-06B）
+
+Unlike DMA-03 (single `itf_list` of 9 values), the DPA-06B coefficient file format depends on `sensor_mode`.  
+
+DMA-03（9個の値からなる単一の `itf_list`）とは異なり，DPA-06B の係数ファイル形式は `sensor_mode` により異なります．
+
+- `sensor_mode:=3axis` : two separate 3x3 (9 value) ITF matrices, one per sensor  
+  `3axis` モード：3x3（9個の値）の ITF 行列を2つ（センサ毎に1つ）
+  - `itf_3axis_sensor1_list` : ITF for sensor 1 (ch1-3)
+  - `itf_3axis_sensor2_list` : ITF for sensor 2 (ch4-6)
+- `sensor_mode:=6axis` : one 6x6 (36 value) ITF matrix  
+  `6axis` モード：6x6（36個の値）の ITF 行列を1つ
+  - `itf_6axis_list` : ITF for the 6-axis sensor
+
+`fs_list` (6 values, `[ch1, ch2, ch3, ch4, ch5, ch6]`) is common to both modes.  
+
+`fs_list`（6個の値，`[ch1, ch2, ch3, ch4, ch5, ch6]`）は両モードで共通です．
+
+For Example - 例 : DPA-06_3AXIS_DEF.yaml (`3axis` mode)
+
+``` yaml
+/**:
+  ros__parameters:
+    # Type:
+    # Serial No.
+    # Inspected Date:
+
+    # Full Scale
+    fs_list: [1000, 1000, 1000, 1000, 1000, 1000]
+
+    # ITF
+    itf_3axis_sensor1_list: [1.0,  0.0,  0.0,
+                             0.0,  1.0,  0.0,
+                             0.0,  0.0,  1.0]
+    itf_3axis_sensor2_list: [1.0,  0.0,  0.0,
+                             0.0,  1.0,  0.0,
+                             0.0,  0.0,  1.0]
+```
+
+For Example - 例 : DPA-06_6AXIS_DEF.yaml (`6axis` mode)
+
+``` yaml
+/**:
+  ros__parameters:
+    # Type:
+    # Serial No.
+    # Inspected Date:
+
+    # Full Scale
+    fs_list: [1000, 1000, 1000, 1000, 1000, 1000]
+
+    # ITF
+    itf_6axis_list: [1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                      0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+                      0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+                      0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+```
+
+Load and write the coefficients as with DMA-03, using `param_path` or `param_file` together with the matching `set_fs` / `set_itf_3axis_sensor1` / `set_itf_3axis_sensor2` / `set_itf_6axis` options.  
+
+DMA-03 と同様に `param_path` もしくは `param_file` と，対応する `set_fs` / `set_itf_3axis_sensor1` / `set_itf_3axis_sensor2` / `set_itf_6axis` オプションを併せて指定し，係数を読み込み・書き込みします．
+
+```bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py sensor_mode:=3axis param_path:=$PATH_TO_YOUR_FILE set_fs:=true set_itf_3axis_sensor1:=true set_itf_3axis_sensor2:=true init_zero:=true
+```
+
+```bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py sensor_mode:=6axis param_path:=$PATH_TO_YOUR_FILE set_fs:=true set_itf_6axis:=true init_zero:=true
+```
+
+If you are using the same pair of the amplifier and the sensor, once the setup is successful, you do not need to set the coefficients again.  
+
+同じアンプとセンサの組み合わせであれば一度設定が成功したら以後設定する必要はありません．
+
+
+### Using Multiple DPA-06B Amplifiers - DPA-06B の複数利用
+
+When using multiple DPA-06B amplifiers, each amplifier is identified by Serial Number or Device Location, in the same way as DMA-03 (see "Using Multiple Sensor Amplifiers" above).  
+
+複数の DPA-06B アンプを利用する場合には，DMA-03 と同様にシリアルナンバーまたはデバイスロケーションで各個アンプを識別します（上記「センサアンプの複数利用」を参照）．
+
+To find the serial number or device location of a connected DPA-06B, run the following command.  
+接続されている DPA-06B のシリアルナンバーまたはデバイスロケーションを調べるには次のコマンドを実行します．
+
+```bash
+python -m serial.tools.list_ports -v | grep -B 1 -A 1 "DPA-06"
+```
+
+The following is an example of adding a launch option to selectively operate the amplifier with the serial number `TBD` from multiple amplifiers connected to your Ubuntu PC.  
+
+Ubuntu PC に複数接続されているアンプから選択的にシリアルナンバー `TBD` のアンプを動作させる場合の起動オプションを付加した例は次のようになります．
+
+```bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py serial_no:=TBD
+```
+
+The following is an example of running with unique node names and frame IDs for two DPA-06B amplifiers (`3axis` mode).  
+
+2つの DPA-06B アンプ（`3axis` モード）を個別のノード名・フレームIDで起動する場合の例です．
+
+**Terminal-1 - ターミナル-1**
+
+```bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py location:=1-2 node_name:=dpa06b_publisher_1 frame_id_sensor1:=force_sensor1_1 frame_id_sensor2:=force_sensor2_1
+```
+
+**Terminal-2 - ターミナル-2**
+
+```bash
+ros2 launch tecgihan_driver dpa06b_ros_launch.py location:=1-1 node_name:=dpa06b_publisher_2 frame_id_sensor1:=force_sensor1_2 frame_id_sensor2:=force_sensor2_2
+```
+
+<br><br>
+
 ## Recordig ROS Topic Data<br> - ROS トピックデータの保存
 
 ### Save ROS Topic as CSV File - ROS Topic を CSV 形式でファイル保存
@@ -1200,6 +1506,7 @@ Before the addition, in `tecgihan_driver/setup.py`, the `entry_points={}` part i
         'console_scripts': [
             'dma03_ros_publisher = tecgihan_driver.dma03_ros_publisher:main',
             'ims_sd_ros_publisher = tecgihan_driver.ims_sd_ros_publisher:main',
+            'dpa06b_ros_publisher = tecgihan_driver.dpa06b_ros_publisher:main',
             'set_udev_rules = tecgihan_driver.set_udev_rules:main'
         ],
     },
@@ -1214,6 +1521,7 @@ Add the description `'new_ros_node = tecgihan_driver.new_ros_node:main',` for `n
         'console_scripts': [
             'dma03_ros_publisher = tecgihan_driver.dma03_ros_publisher:main',
             'ims_sd_ros_publisher = tecgihan_driver.ims_sd_ros_publisher:main',
+            'dpa06b_ros_publisher = tecgihan_driver.dpa06b_ros_publisher:main',
             'new_ros_node = tecgihan_driver.new_ros_node:main',
             'set_udev_rules = tecgihan_driver.set_udev_rules:main'
         ],
@@ -1340,6 +1648,10 @@ Within this line, the first half of `0403:6014` is VendorID `0403` and the secon
 
 この行内において，`0403:6014` の前半部分が VendorID `0403` で，後半部分が ProductID `6014` です．
 
+**Note - 注**: IMS-SD and DPA-06B use a different interface chip from DMA-03: VendorID `0403`, ProductID `6015` (instead of `6014`). IMS-SD and DPA-06B share the same VendorID/ProductID (`0403:6015`), so they cannot be distinguished by VendorID/ProductID alone; the driver software identifies which amplifier is connected by matching the USB `product` string (e.g. `port.product`) instead, such as `"FT230X Basic UART"` for IMS-SD or `"DPA-06"` for DPA-06B.  
+
+IMS-SD と DPA-06B は DMA-03 とは異なるインタフェースチップを使用しています：VendorID `0403`，ProductID `6015`（`6014` ではありません）．IMS-SD と DPA-06B は同じ VendorID/ProductID（`0403:6015`）を共有しているため VendorID/ProductID だけでは区別できず，ドライバソフトウェアは USB の `product` 文字列（例：`port.product`）でどちらのアンプが接続されているかを判定しています．IMS-SD であれば `"FT230X Basic UART"`，DPA-06B であれば `"DPA-06"` といった文字列で識別します．
+
 
 #### Adding to udev File - udev ファイルへの追記
 
@@ -1351,15 +1663,20 @@ To set the connected USB device to a state that is always available to users, fi
 ```
 # Tec Gihan Amplifier Permission Settings
 SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6014", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6015", MODE="0666"
 ```
 
-Add a new line in the same format as the second line in the `udev` file above.
-Replace the `0403` part of `ATTR{idVendor}=="0403"` in that line with the VendorID you want to add.
-Replace the `6014` part of `ATTR{idProduct}=="6014"` with the ProductID you want to add.
+The second line above (`6015`) already covers both IMS-SD and DPA-06B, since they share the same interface chip. When adding a new amplifier, a new line is only needed if its interface chip has a VendorID/ProductID not yet covered by an existing line.  
 
-上記の `udev` ファイルの2行目と同じ形式の新たに行を追加します．
+上記2行目（`6015`）は IMS-SD と DPA-06B の両方をすでにカバーしています（同じインタフェースチップを使用しているため）．新たにアンプを追加する場合，既存の行でカバーされていない VendorID/ProductID のインタフェースチップを使用する場合にのみ新しい行の追加が必要です．
+
+Add a new line in the same format as the existing lines in the `udev` file above.
+Replace the `0403` part of `ATTR{idVendor}=="0403"` in that line with the VendorID you want to add.
+Replace the ProductID (`6014` or `6015`) with the ProductID you want to add.
+
+上記の `udev` ファイルの既存の行と同じ形式の新たな行を追加します．
 その行の `ATTR{idVendor}=="0403"` の `0403` の部分を追加したい VendorID に置き換えます．
-`ATTR{idProduct}=="6014"` の `6014` の部分を追加したい ProductID に置き換えます．
+ProductID（`6014` または `6015`）の部分を追加したい ProductID に置き換えます．
 
 If the VendorID to be added is `12ab` and the ProductID is `34cd`, the `udev` file will look like the following example.
 
@@ -1368,6 +1685,7 @@ If the VendorID to be added is `12ab` and the ProductID is `34cd`, the `udev` fi
 ```
 # Tec Gihan Amplifier Permission Settings
 SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6014", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6015", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="12ab", ATTR{idProduct}=="34cd", MODE="0666"
 ```
 
