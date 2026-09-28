@@ -2,6 +2,13 @@
 Changelog for package tecgihan_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.1 (2026-09-28)
+------------------
+Fixed
+- Fixed incorrect engineering value conversion in DPA-06B 6axis sensor_mode.
+
+Contributors: Ryota Amakawa
+
 0.3.0 (2026-07-22)
 ------------------
 Added

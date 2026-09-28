@@ -344,9 +344,10 @@ class DPA06BDriverForRobot(DPA06BDriver):
                     # 6-axis sensor: all 6 channels calculated together
                     (self._eng1, self._eng2, self._eng3,
                      self._eng4, self._eng5, self._eng6) = self._calculate_eng_data(
-                        ad1, ad2, ad3, ad4, ad5, ad6,
+                        ad1, ad2, ad3,
                         self._fs_ch1, self._fs_ch2, self._fs_ch3,
-                        self._fs_ch4, self._fs_ch5, self._fs_ch6)
+                        ad4=ad4, ad5=ad5, ad6=ad6,
+                        fs4=self._fs_ch4, fs5=self._fs_ch5, fs6=self._fs_ch6)
                 self._assigning = False
                 if self._debug:
                     print('Time: {} (Diff: {} )'.format(
